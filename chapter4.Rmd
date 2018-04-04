@@ -1,0 +1,134 @@
+---
+title: Confidence Intervals and p-Values
+title_meta: Chapter 4
+description: In this chapter, you will learn about confidence intervals and p-values using actual polls from the 2016 US Presidential election.
+---
+For these exercises, we will use actual polls from the 2016 election. You can load the data from the `dslabs` package.
+
+```{r}
+library(dslabs)
+data("polls_us_election_2016")
+```
+
+Specifically, we will use all the national polls that ended within four two before the election.
+
+```{r, message=FALSE, comment=FALSE}
+library(tidyverse)
+polls <- polls_us_election_2016 %>% filter(enddate >= "2016-10-31" & state == "U.S.") 
+```
+
+## Exercise 1
+For the first poll you can obtain the samples size and estimated Clinton percentage with:
+
+```{r}
+N <- polls$samplesize[1]
+X_hat <- polls$rawpoll_clinton[1]/100
+```
+
+Assume there are only two candidates and construct a 95% confidence interval for the election night proportion $p$. 
+
+```{r}
+se_hat <- sqrt(X_hat*(1-X_hat)/N)
+X_hat + c(-1,1)*pnorm(0.975)*se_hat
+```
+
+## Exercise 2
+Now use `dplyr` to add a confidence interval as two columns, call them `lower` and `upper`, of the object `poll`, then show a pollster. Show the end date, pollster, the estimated proportion, and confidence interval columns. Hint: define temporary columns `X_hat` and `se_hat`. 
+
+```{r}
+polls %>% mutate(X_hat = polls$rawpoll_clinton/100, se_hat = sqrt(X_hat*(1-X_hat)/samplesize),
+                 lower = X_hat - pnorm(0.975)*se_hat, upper = X_hat + pnorm(0.975)*se_hat) %>%
+  select(pollster, enddate, X_hat, lower, upper)
+```
+
+## Exercise 3
+The final tally for the popular vote was Clinton 48.2%	and Trump 46.1%. Add a column, call it `hit`, to the previous table stating if the confidence interval included the true proportion $p=0.482$ or not. 
+
+```{r}
+polls %>% mutate(X_hat = polls$rawpoll_clinton/100, se_hat = sqrt(X_hat*(1-X_hat)/samplesize),
+                 lower = X_hat - pnorm(0.975)*se_hat, upper = X_hat + pnorm(0.975)*se_hat, 
+                 hit = lower<=0.482 & upper>=0.482) %>%
+  select(pollster, enddate, X_hat, lower, upper, hit) 
+```
+
+## Exercise 4
+For the table you just created, what proportion of confidence intervals included $p$?
+
+```{r}
+polls %>% mutate(X_hat = polls$rawpoll_clinton/100, se_hat = sqrt(X_hat*(1-X_hat)/samplesize),
+                 lower = X_hat - pnorm(0.975)*se_hat, upper = X_hat + pnorm(0.975)*se_hat, 
+                 hit = lower<=0.482 & upper>=0.482) %>%
+  select(pollster, enddate, X_hat, lower, upper, hit) %>%
+  summarize(mean(hit))
+```
+
+## Exercise 5
+If these confidence intervals are constructed correctly, and the theory holds up, what proportion should include $p$?
+
+```{r}
+0.95
+```
+
+## Exercise 6
+A much smaller proportion of the polls than expected produce confidence intervals containing $p$. If you look closely at the table, you will see that most polls that fail to include $p$ are underestimating. The reason for this is undecided voters, individuals polled that do not yet know who they will vote for or do not want to say. Because, historically, undecideds divide evenly between the two main candidates on election day, it is more informative to estimate the spread or the difference between the proportion of two candidates $d$, which in this election was $0.482 - 0.461 = 0.021$. Assume that there are only two parties and that $d = 2p - 1$, define:
+
+```{r, message=FALSE, comment=FALSE}
+polls <- polls_us_election_2016 %>% filter(enddate >= "2016-10-31" & state == "U.S.")  %>%
+  mutate(d_hat = rawpoll_clinton/100 - rawpoll_trump/100)
+```
+
+and re-do exercise 1, but for the difference.
+
+
+```{r}
+N <- polls$samplesize[1]
+d_hat <- polls$d_hat[1]
+X_hat <- (d_hat+1)/2
+se_hat <- 2*sqrt(X_hat*(1-X_hat)/N)
+d_hat + c(-1,1)*pnorm(0.975)*se_hat
+```
+
+
+## Exercise 7
+Now repeat exercise 3, but for the difference.
+
+```{r}
+polls %>% mutate(X_hat = (d_hat+1)/2, se_hat = 2*sqrt(X_hat*(1-X_hat)/samplesize),
+                 lower = d_hat - pnorm(0.975)*se_hat, upper = d_hat + pnorm(0.975)*se_hat, 
+                 hit = lower<=0.021 & upper>=0.021) %>%
+  select(pollster, enddate, d_hat, lower, upper, hit) 
+```
+
+
+## Exercise 8
+Now repeat exercise 4, but for the difference.
+
+```{r}
+polls %>% mutate(X_hat = (d_hat+1)/2, se_hat = 2*sqrt(X_hat*(1-X_hat)/samplesize),
+                 lower = d_hat - pnorm(0.975)*se_hat, upper = d_hat + pnorm(0.975)*se_hat, 
+                 hit = lower<=0.021 & upper>=0.021) %>%
+  select(pollster, enddate, d_hat, lower, upper, hit) %>% 
+  summarize(mean(hit))
+```
+
+## Exercise 9
+Although the proportion of confidence intervals goes up substantially, it is still lower that 0.95. In the next chapter, we learn the reason for this. To motivate this, make a plot of the error, the difference between each poll's estimate and the actual $d=0.021$. Stratify by pollster.
+
+```{r}
+polls %>% mutate(error = d_hat - 0.021) %>%
+  ggplot(aes(pollster, error)) +
+  geom_point() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+## Exercise 10
+Re-do the plot you made for exercise 9, but only for pollsters that took five or more polls.
+
+```{r}
+polls %>% mutate(error = d_hat - 0.021) %>%
+  group_by(pollster) %>%
+  filter(n() >= 5) %>%
+  ggplot(aes(pollster, error)) +
+  geom_point() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```

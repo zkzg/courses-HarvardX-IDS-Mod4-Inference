@@ -1,5 +1,5 @@
 ---
-title: Introduction to Inference
+title: Bayesian Statistics
 title_meta: Chapter 6
 description: In this chapter, you will learn about the Bayesian statistics.
 ---

@@ -1,0 +1,140 @@
+---
+title: Introduction to Inference
+title_meta: Chapter 6
+description: In this chapter, you will learn about the Bayesian statistics.
+---
+## Exercise 1
+In 1999 in England [Sally Clark](https://en.wikipedia.org/wiki/Sally_Clark) was found guilty of the murder of two of her sons. Both infants were found dead in the morning, one in 1996 and another in 1998, and she claimed the cause of death was sudden infant death syndrome (SIDS). No evidence of physical harm was found on the two infants so the main piece of evidence against her was the testimony of Professor Sir Roy Meadow, who testified that the chances of two infants dying of SIDS was 1 in 73 million. He arrived at this figure by finding that the rate of SIDS was 1 in 8,500 and then calculating that the chance of two SIDS cases was 8,500 $\times$ 8,500 $\approx$ 73 million. Which of the following do you agree with?
+
+    A. Sir Meadow assumed that the probability of the second son being affected by SIDS was independent of the first son being affected, thereby ignoring possible genetic causes. If genetics plays a role then: 
+    $\mbox{Pr}(\mbox{second case of SIDS} \mid \mbox{first case of SIDS}) < \mbox{Pr(\mbox{first case of SIDS})$.
+    B. Nothing. The multiplicative rule always applies in this way: $\mbox{Pr}(A \mbox{ and } B) =\mbox{Pr}(A)\mbox{Pr}(B)$
+    C. Sir Meadow is an expert and we should trust his calculations.
+    D. Numbers don't lie.
+    
+    
+## Exercise 2
+Let's assume that there is in fact a genetic component to SIDS and the the probability of $\mbox{Pr}(\mbox{second case of SIDS} \mid \mbox{first case of SIDS}) = 1/100$, is much higher than 1 in 8,500. What is the probability of both of her sons dying of SIDS?
+
+
+```{r}
+1/8500 * 1/100
+```
+
+## Exercise 3
+Many press reports stated that the expert claimed the probability of Sally Clark being innocent as 1 in 73 million. Perhaps the jury and judge also interpreted the testimony this way. This probability can be written like this: 
+
+    $$
+    \mbox{Pr}(\mbox{A mother is a son-murdering psychopath} \mid \mbox{two of her children are found dead with no evidence of physical harm  }) 
+    $$
+    
+    Bayes' rule tells us this probability is equal to:
+
+      A. $\mbox{Pr}(\mbox{two of her children are found dead with no evidence of physical harm}  = 1/1000000$
+      B. \mbox{Pr}(\mbox{two of her children are found dead with no evidence of physical harm})\mbox{Pr}(\mbox{a mother is a son-murdering psychopath} )
+      C. 
+  $$\frac{\mbox{Pr}(\mbox{two of her children are found dead with no evidence of physical harm} \mid \mbox{a mother is a son-murdering psychopath} ) \mbox{Pr}(\mbox{a mother is a son-murdering psychopath})}{\mbox{Pr}(\mbox{two children are found dead with no evidence of physical harm})}$$ 
+    D. 1/8500
+
+## Exercise 4
+Assume that the chance of a son-murdering psychopath finding a way to kill her children, without leaving evidence of physical harm, is:
+
+$\mbox{Pr}(\mbox{two of her children are found dead with no evidence of physical harm} \mid \mbox{a mother is a son-murdering psychopath} ) = 0.50$. Assume that the rate of rate of son-murdering psychopaths mothers is 1 in 1,000,000. What is the probability of 
+
+
+    $$
+\mbox{Pr}(\mbox{A mother is a son-murdering psychopath} \mid \mbox{two of her children are found dead with no evidence of physical harm  }) =
+    $$
+    
+    according to Bayes' rule:
+
+    ```{r}
+    0.5*1/1000000 / (1/8500 * 1/100)
+    ```
+
+
+## Exercise 5
+After Sally Clark was found guilty, the Royal Statistical Society issued a statement saying that there was "no statistical basis" for the expert's claim. They expressed concern at the "misuse of statistics in the courts". Eventually, Sally Clarke was acquitted in June 2003. What did the expert miss?
+
+    A. He made an arithmetic error.
+    B. He made two mistakes. First, he misused the multiplicative rule and did not take into account how rare it is for a mother to murder her children. After using Bayes' rule, we found a probability closer to 0.5 than 1 in 73 million.
+    C. He mixed up the numerator and denominator of Bayes' rule.
+    D. He did not use R.
+
+## Exercise 6
+Florida is one of the most closely watched states in the U.S. election because it has many electoral votes and the election is generally close. Create the following table with the polls taken during the last two weeks:
+
+```{r}
+library(tidyverse)
+library(dslabs)
+data(polls_us_election_2016)
+polls <- polls_us_election_2016 %>% 
+  filter(state == "Florida" & enddate >= "2016-11-04" ) %>% 
+  mutate(spread = rawpoll_clinton/100 - rawpoll_trump/100)
+polls
+```
+
+Take the average of these `r nrow(polls)`. The CLT tells us this average is approximately normal. Calculate an average and provide an estimate of the standard error. Save your results in an object called `results`.
+
+```{r}
+results <- polls %>% summarize(avg = mean(spread),  se = sd(spread)/sqrt(n()))
+```
+
+## Exercise 7
+Now assume a Bayesian model that starts with sets the prior distribution for Florida's election night spread $d$ to be Normal with expected value $\mu$ and standard deviation $\tau$. What are the interpretations of $\mu$ and $\tau$?
+
+    A. $\mu$ and $\tau$ are arbitrary numbers that let us make probability statements about $d$.
+    B. $\mu$ and $\tau$ summarize what we would predict for Florida before seeing any polls. Based on past elections, we would set $\mu$ close to 0 because both Republicans and Democrats have won, and $\tau$ at about $0.02$, because these elections tend to be close.
+    C.  $\mu$ and $\tau$ summarize what we want to be true. We therefore set $\mu$ at $0.10$ and $\tau$ at $0.01$. 
+    D. The choice of prior has no effect on Bayesian Analysis.
+
+
+## Exercise 8
+The CLT tells us that our estimate of the spread $\hat{d}$ has Normal distribution with expected value $d$ and standard deviation $\sigma$ calculated in problem 6. Use the formulas we showed for the posterior distribution to calculate the expected value of the posterior distribution if we set $\mu = 0$ and $\tau = 0.01$.
+
+
+
+```{r}
+mu <- 0
+tau <- 0.01
+sigma <- results$se
+Y <- results$avg
+B <- sigma^2 / (sigma^2 + tau^2)
+B*mu + (1-B)*Y
+```
+
+## Exercise 9
+Now compute the standard deviation of the posterior distribution.
+
+```{r}
+sqrt( 1/ (1/sigma^2 + 1/tau^2))
+```
+
+## Exercise 10
+Using the fact that the posterior distribution is normal, create an interval that has a 95% of occurring centered at the posterior expected value. Note that we call these credible intervals.
+
+```{r}
+B*mu + (1-B)*Y + c(-1,1)*qnorm(0.975)*sqrt( 1/ (1/sigma^2 + 1/tau^2))
+```
+
+## Exercise 11
+According to this analysis, what was the probability that Trump wins Florida?
+
+```{r}
+pnorm(0, B*mu + (1-B)*Y, sqrt( 1/ (1/sigma^2 + 1/tau^2)))
+```
+
+## Exercise 12
+Now use sapply function to change the prior variance from `seq(0.05, 0.05, len = 100)` and observe how the probability changes by making a plot.
+
+```{r}
+mu <- 0
+taus <- seq(0.005, 0.05, len = 100)
+sigma <- results$se
+Y <- results$avg
+ps <- sapply(taus, function(tau){
+  B <- sigma^2 / (sigma^2 + tau^2)
+  pnorm(0, B*mu + (1-B)*Y, sqrt( 1/ (1/sigma^2 + 1/tau^2)))
+})
+plot(taus, ps)
+```

@@ -1,0 +1,149 @@
+---
+title: Introduction to Inference
+title_meta: Chapter 3
+description: In this chapter, you will learn about the central limit theorem in practice.
+---
+## Exercise 1
+Write an _urn model_ function that takes the proportion of Democrats $p$ and the sample size $N$ as arguments and returns the sample average if Democrats are 1s and Republicans are 0s. Call the function `take_sample`. 
+
+```{r}
+take_sample <- function(p, N){
+    X <- sample(c(0,1), size=N, replace=TRUE, prob=c(1-p, p))
+    mean(X)
+}
+take_sample(10,100)
+```
+
+## Exercise 2
+Now assume `p <- 0.45` and that your sample size is $N=100$. Take a sample of 25, 10,000 times and save the vector of `mean(X)- p` into an object called `errors`. Hint: use the function you wrote for exercise 1 to write this in one line of code.
+
+```{r}
+p <- 0.45
+N <- 100
+errors <- replicate(10000, p - take_sample(p, N))
+```
+
+## Exercise 3
+Vector `errors` contains, for each simulated sample, the difference between the actual $p$ and our estimate $\bar{X}$. We refer to this difference as the _error_. Compute the average and make a histogram of the errors generated in the Monte Carlo simulation and select which of the following best describes their distributions:
+
+```{r}
+mean(errors)
+hist(errors)
+```
+
+  A. The errors are all about 0.05.
+  B. The error are all about -0.05.
+  C. The errors are symmetrically distributed around 0.
+  D. The errors range from -1 to 1.
+
+## Exercise 4
+The error $\bar{X}-p$ is a random variable. In practice, the error is not observed because we do not know $p$. Here we observe it because we constructed the simulation. What we can do in practice is describe the size of the error. What is the average size of the error if we define the size by taking the absolute value $\mid \bar{X} - p \mid$ ?
+
+
+```{r}
+mean(abs(errors))
+```
+## Exercise 5
+The standard error is related to the value we just computed. It is related to the typical **size** of the error we make when predicting. We say **size** because we just saw that the errors are centered around 0, so in that sense the typical error is 0. For mathematical reasons related to the central limit theorem, we actually use the standard deviation of `errors` rather than the average of the absolute values. As we have discussed, the standard error is the squared root of the average squared distance $(\bar{X} - p)^$. What is this standard deviation, defined as the squared root of the distance squared?
+
+```{r}
+sqrt(mean(errors^2))
+```
+
+## Exercise 6
+The theory we just learned tells us what this standard deviation is going to be because it is the standard error of $\bar{X}$. Generate a sample and create an estimate of the standard error of $\bar{X}$.
+
+
+```{r}
+p <- 0.45
+N <- 100
+sqrt(p*(1-p)/N)
+```
+
+## Exercise 7
+In practice, we don't know $p$, so we construct an estimate of the theoretical prediction based by plugging in $\bar{X}$ for $p$. Compute this estimate. Set the seed at 1 with `set.seed(1)`.
+
+```{r}
+set.seed(1)
+N <- 100
+p <- 0.45
+X <- sample(c(0,1), size=N, replace=TRUE, prob=c(1-p, p))
+X_bar <- mean(X)
+sqrt(X_bar*(1-X_bar)/N)
+```
+
+
+## Exercise 8
+Note how close the standard error estimates obtained from the Monte Carlo simulation (exercise 5), the theoretical prediction (exercise 6), and the estimate of the theoretical prediction (exercise 7) are. The theory is working and it gives us a practical approach to knowing the typical error we will make if we predict $p$ with $\hat{X}$. Another advantage that the theoretical result provides is that it gives an idea of how large a sample size is required to obtain the precision we need. Earlier we learned that the largest standard errors occur for $p=0.5$. Create a plot of the largest standard error for $N$ ranging from 100 to 5,000. Based on this plot, how large does the sample size have to be to have a standard error of about 1%?
+
+  A. 100
+  B. 500
+  C. 2,500
+  D. 4,000
+
+```{r}
+N <- seq(100, 5000, len = 100)
+p <- 0.5
+se <- sqrt(p*(1-p)/N)
+plot(N, se)
+```
+
+You can also solve for $N$:
+
+$$
+\sqrt{p(1-p)/N} = 0.01 \Rightarrow p(1-p)/N = 0.0001 \Rightarrow N = 10000 p (1-p) \Rightarrow N = 2500
+$$
+
+## Exercise 9
+For $N=100$, the central limit theorem tells us that the distribution of $\hat{X}$ is :
+
+    A. practically equal to $p$.
+    B. approximately normal with expected value $p$ and standard error $\sqrt{p(1-p)/N}$.
+    C. approximately normal with expected value $\bar{X}$ and standard error $\sqrt{\bar{X}(1-\bar{X})/N}$.
+    D. not a random variable.
+    
+__Answer__: B
+
+## Exercise 10
+Based on the answer from exercise 8, errors $\bat{X} - p$ are:
+
+    A. practically equal to 0.
+    B. approximately normal with expected value $0$ and standard error $\sqrt{p(1-p)/N}$.
+    C. approximately normal with expected value $p$ and standard error $\sqrt{p(1-p)/N}$.
+    D. not a random variable.
+    
+__Answer__: B, since subtracting a constant only shifts a random variable.
+
+
+## Exercise 11
+To corroborate your answer to exercise 9, make a qq-plot of the `errors` you generated in exercise 2 to see if they follow a normal distribution. 
+
+```{r}
+qqnorm(errors)
+qqline(errors)
+```
+
+
+## Exercise 12
+If $p=0.45$ and $N=100$ as in exercise 2, use the CLT to estimate the probability that $\bar{X}>0.5$. You can assume you know $p=0.45$ for this calculation.
+
+```{r}
+p <- 0.45
+N <- 100
+1 - pnorm(0.5, p, sqrt(p*(1-p)/N))
+```
+
+## Exercise 13
+Assume you are in a practical situation and you don't know $p$. Take a sample of size $N=100$ and obtain a sample average of $\bar{X} = 0.51$. What is the CLT approximation for the probability that your error is equal or larger than 0.01?
+
+
+
+```{r}
+N <-100
+X_hat <- 0.51
+se_hat <- sqrt(X_hat*(1-X_hat)/N)
+1 - pnorm(.01, 0, se_hat) + pnorm(-0.01, 0, se_hat)
+```
+
+
+

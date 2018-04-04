@@ -1,0 +1,57 @@
+Assessment
+What are the expected values and standard errors of the number of Democrats. Hint: the answers are functions of $p$, the proportion of Democrats.
+
+Let $S$ be the number of Democrats in our sample or the sum of the 25 draws. Our expected value is:
+
+$$\mbox{E}(S) = 25p$$
+
+and standard error is:
+
+$$\mbox{SE}(S) = \sqrt{25 p (1-p)}$$
+
+Two more intuitive results. If we divide $S$ by constant, the expected value and standard error are also divided by this constant. This implies that:
+
+Now we know that the expected value of the proportion in our sample $S/25$ has expected value $p$.
+
+$$\mbox{E}(S/25) = p$$
+
+which implies that $S/25$ will be $p$ plus some chance error.
+
+The SE,
+
+$$\mbox{SE}(S/25) = \sqrt{p(1-p)} / \sqrt{N}$$
+
+gives us an idea of how large the error is.
+
+We do notice that by making $N$ larger, we can make our standard error smaller. The Law of Large Numbers tells us that the bigger $N$, the closer the sample average gets to the average of the jar, which is the quantity we want to estimate.
+
+Assessment:
+What are the averages for the roulette examples?
+
+Betting on black
+Betting on 7
+Can you predict how much money your casino will make on those 10,000 people? We can run a simulation of this and see how many people made $10, $9, \dots, -$10 :
+
+n <- 10000
+earnings <- replicate(n, {
+  X <- sample(c(-1,1), 10, replace = TRUE, prob=c(10/19, 9/19))
+  S <- -sum(X)
+})
+table(earnings)
+We can see that as a group the people lost:
+
+sum(earnings)
+Can you predict how much money your casino will make on those 10,000 people? We can run a simulation of this and see how many people made $10, $9, \dots, -$10 :
+
+n <- 10000
+earnings <- replicate(n, {
+  X <- sample(c(-1,1), 10, replace = TRUE, prob=c(10/19, 9/19))
+  S <- -sum(X)
+})
+table(earnings)
+We can see that as a group the people lost:
+
+sum(earnings)
+dollars, which is equivalent to our casino's earnings. But note that earnings is also a random variable.
+
+If you run the code above repeatedly, you start appreciating the randomness. For a casino owner, it would be very convenient to actually describe this randomness precisely. We do this by deciphering the probability distribution of random variables.

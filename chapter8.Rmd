@@ -1,0 +1,86 @@
+---
+title: The t-distribution and Association Tests
+title_meta: Chapter 8
+description: In this chapter, you will learn about the t-distribution, association tests, and the chi-squared test.
+---
+## Exercise 1
+
+We know that with a normal distribution only 5% of values are more than 2 standard deviations away from the mean. Use the `pt` function to calculate the probability of seeing t-distributed random variables being more than 2 in absolute value when the degrees of freedom are 3.
+
+```{r}
+1 - pt(2, 3) + pt(-2, 3)
+```
+
+## Exercise 2
+Now use `sapply` to compute the above probability for degrees of freedom from 3 to 50. Make a plot and notice when this probability converges to the normal distribution's 5%.
+
+```{r}
+df <- seq(3,50)
+probs <- sapply(df, function(x) 1 - pt(2, x) + pt(-2, x))
+plot(df, probs)
+```
+
+## Exercise 3
+In a previous section, we took random samples from the height distribution of size 50 and noticed that confidence intervals were almost 95%.
+
+```{r}
+library(dslabs)
+data(heights)
+x <- heights %>% filter(sex == "Male") %>%
+  .$height
+set.seed(1)
+mu <- mean(x)
+set.seed(1)
+N <- 50
+B <- 10000
+res <- replicate(B, {
+  X <- sample(x, N, replace=TRUE)
+  interval <- mean(X) + c(-1,1)*qnorm(0.975)*sd(X)/sqrt(N)
+  between(mu, interval[1], interval[2])
+})
+mean(res)
+```
+
+    Re-do the above Monte Carlo simulation, but now instead of $N=50$, use $N=15$. Notice what happens to the proportion of hits.
+    
+
+```{r}
+set.seed(1)
+mu <- mean(x)
+set.seed(1)
+N <- 15
+B <- 10000
+res <- replicate(B, {
+  X <- sample(x, N, replace=TRUE)
+  interval <- mean(X) + c(-1,1)*qnorm(0.975)*sd(X)/sqrt(N)
+  between(mu, interval[1], interval[2])
+})
+mean(res)
+```
+
+## Exercise 4
+Now repeat exercise 2, but since $N=15$ is not that big and we know that heights are normally distributed the t-distribution should apply, use the t-distribution instead of using the normal to construct the confidence intervals.
+
+
+```{r}
+set.seed(1)
+N <- 15
+B <- 10000
+res <- replicate(B, {
+  X <- sample(x, N, replace=TRUE)
+  interval <- mean(X) + c(-1,1)*qt(0.975, N-1)*sd(X)/sqrt(N)
+  between(mu, interval[1], interval[2])
+})
+mean(res)
+```
+
+## Exercise 5
+Why did the t-distribution confidence intervals work so much better?
+
+    A. Because the t-distribution takes the variability introduced by estimating the standard deviation into account and generaates larger confidence intervels.
+    B. Because the t-distribution shifts the intervals in the right direction.
+    C. This was just a chance occurrence. If we run it again, the CLT will work better.
+    D. The t-distribution is alwasy a better approximation than the normal.
+    
+    
+    
